@@ -12,5 +12,40 @@ services:
       MARIADB_PASSWORD: jewel@123
       MARIADB_ROOT_PASSWORD: jeweldb@123
       TZ: Asia/Singapore
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: jeweldb
+      DB_USER: jewel
+      DB_PASSWORD: jewel@123
+      TZ: Asia/Singapore
+    ports:
+      - 8080:8080
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8080/api/v1
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - 3000:80
+
 volumes:
   dbdata:
