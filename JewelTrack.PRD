@@ -1,0 +1,249 @@
+# JewelTrack — Product Requirements Document
+
+**Version:** 1.0
+**Date:** 2026-11-08
+**Status:** Approved for build
+**Repository:** `jewellery-catalog/`
+
+---
+
+## 1. Overview
+
+**JewelTrack** is a personal jewellery inventory application that lets a user catalogue their
+jewellery collection (gold, silver, and other pieces), see an at-a-glance dashboard of their
+holdings — total grams per metal, total value, item count — and manage items through a
+filterable list with the ability to add new pieces.
+
+- **Single-user, local deployment.** No accounts, no multi-tenancy, no auth (see §11 Non-goals).
+- **Currency:** all amounts are in **SGD (S$)**. Amounts are stored as plain decimals; SGD is a
+  frontend display convention, so changing currency later is a UI-only change.
+
+## 2. Goals
+
+1. Instantly answer "what do I own?" — totals per metal, in grams and in value.
+2. Visualise the composition of the collection (bar + donut charts).
+3. Find any item quickly via a filterable, sortable list.
+4. Add a new item in under 30 seconds with light validation.
+5. Stay technology-clean: a swap-in data layer so sample data (Phase 1) becomes live backend
+   data (Phase 3) with zero UI changes.
+
+## 3. Non-Goals (out of scope for v1)
+
+- Authentication / multiple users
+- Live gold-price tracking or valuation at market rates
+- Photo upload for items
+- Editing/deleting items is **in scope** (cheap to add, keeps the demo usable); CSV/Excel export,
+  audit history, and reminders are not
+- Mobile native apps (responsive web only)
+- Cloud deployment (local run only; deployable later if desired)
+
+## 4. Users
+
+**Primary user:** an individual keeping personal records of their family's or their own
+jewellery purchases — what it is, how heavy, what it cost, what notes apply. Not a jeweller's
+POS or store-inventory system.
+
+## 5. Functional Requirements
+
+### 5.1 Dashboard — inventory overview (FR-1)
+
+On load, the dashboard presents the whole inventory at a glance:
+
+| ID | Requirement |
+|---|---|
+| FR-1.1 | Stat card: **Total Gold** in grams |
+| FR-1.2 | Stat card: **Total Silver** in grams |
+| FR-1.3 | Stat card: **Total Other** (platinum, pearl, etc.) in grams |
+| FR-1.4 | Stat card: **Total items** in the collection |
+| FR-1.5 | Stat card: **Total amount spent** (S$, all items) |
+| FR-1.6 | Stat cards also show the value (S$) held in each metal alongside grams |
+
+### 5.2 Charts (FR-2)
+
+| ID | Requirement |
+|---|---|
+| FR-2.1 | **Bar chart** — total grams per metal (Gold / Silver / Other), stacked by carat (e.g. 22K vs 18K vs "other") |
+| FR-2.2 | **Donut chart** — share of total amount spent per metal, with legend and S$ labels |
+| FR-2.3 | Charts must be responsive (stack below the stat cards on narrow screens) |
+| FR-2.4 | Charts must handle empty data (no items) gracefully with an empty state |
+
+### 5.3 Item list with filters (FR-3)
+
+| ID | Requirement |
+|---|---|
+| FR-3.1 | Table columns: Name, Type, Carat, Weight (g), Amount (S$), Remarks (truncated), Added date |
+| FR-3.2 | Filter: **Type** (All / Gold / Silver / Other) |
+| FR-3.3 | Filter: **Name** — case-insensitive substring search |
+| FR-3.4 | Filter: **Carat** (any / specific value) |
+| FR-3.5 | Sort: Name, Weight, Amount, Added date (asc/desc) |
+| FR-3.6 | Filters compose (AND logic) and are reflected in both the list and a "showing X of Y" count |
+| FR-3.7 | "Clear filters" affordance |
+
+### 5.4 Metal totals (FR-4)
+
+Covered by FR-1.1–FR-1.6: total grams of gold, silver, and other must be visible on the
+dashboard and stay consistent with the item list (single source of truth).
+
+### 5.5 Add item (FR-5)
+
+| ID | Requirement |
+|---|---|
+| FR-5.1 | "Add Item" button opens a modal form |
+| FR-5.2 | Fields: **Name** (required), **Type** (required: Gold/Silver/Other), **Carat** (optional, number), **Weight in grams** (required, > 0), **Amount spent (S$)** (required, ≥ 0), **Remarks** (optional, free text) |
+| FR-5.3 | Inline validation with clear error messages; no empty/invalid submission |
+| FR-5.4 | On success: toast confirmation, modal closes, list + stat cards + charts update immediately |
+| FR-5.5 | On failure (Phase 3): error toast, form state preserved for correction |
+| FR-5.6 | **Edit item** — same form pre-populated (via row action) |
+| FR-5.7 | **Delete item** — with confirmation dialog (via row action) |
+
+## 6. Data Model
+
+### 6.1 `JewelleryItem`
+
+| Field | Type | Constraints | Notes |
+|---|---|---|---|
+| `id` | `BIGINT` | PK, auto-increment | |
+| `name` | `VARCHAR(200)` | NOT NULL | e.g. "Bridal Kundan Set" |
+| `type` | `ENUM('GOLD','SILVER','OTHER')` | NOT NULL | Drives charts & totals |
+| `carat` | `DECIMAL(5,2)` | nullable, 0–99.99 | 22, 18, 14… |
+| `weight_grams` | `DECIMAL(10,3)` | NOT NULL, > 0 | |
+| `amount_spent` | `DECIMAL(12,2)` | NOT NULL, ≥ 0 | SGD, stored currency-agnostic |
+| `remarks` | `VARCHAR(1000)` | nullable | |
+| `created_at` | `TIMESTAMP` | NOT NULL, auto | |
+| `updated_at` | `TIMESTAMP` | NOT NULL, auto-updated | |
+
+### 6.2 Seed data (Phase 1 mock + Phase 2 SQL)
+
+~15 realistic items spanning:
+- Gold: 22K bangles/necklaces, 18K rings/earrings, 24K coins
+- Silver: 92.5 pendants, coin, bangles
+- Other: platinum ring, pearl strand
+
+Weights 1.5 g – 120 g; amounts S$ 180 – S$ 45,000. Must include at least one item per
+metal, several carat values, and a few null carats to exercise UI edge cases.
+
+## 7. UI / UX Specification
+
+**Layout (desktop, single page, top → bottom):**
+
+1. Header: app name "JewelTrack" + "Add Item" primary button (right)
+2. Stat card row: 5 cards (Gold g+S$, Silver g+S$, Other g+S$, Items, Total Spent)
+3. Chart row: bar chart (grams by metal, stacked by carat) + donut chart (value share)
+4. Item list: filter bar (Type ▾, Name search, Carat ▾, Clear) + sortable table
+
+**Conventions:**
+- Currency formatted `S$ 12,450.00` (en-SG number formatting)
+- Weights formatted with unit `g` (1 decimal, trim trailing `.0`)
+- Empty states for table and charts when no items match
+- Mobile (< 768 px): cards wrap 2-per-row, charts stack full-width, table scrolls horizontally
+  or collapses to card list
+- Dark theme optional; ship light theme for v1
+
+## 8. API Specification (Phase 2)
+
+Base URL: `/api/v1`
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/items` | List items. Query params: `type` (GOLD\|SILVER\|OTHER), `name` (substring), `carat` (exact), `minWeight`, `maxWeight`, `sort` (field, asc/desc), `page`, `size` |
+| `GET` | `/items/{id}` | Fetch one item |
+| `POST` | `/items` | Create item |
+| `PUT` | `/items/{id}` | Update item |
+| `DELETE` | `/items/{id}` | Delete item |
+| `GET` | `/dashboard/summary` | Totals per metal (grams + value), total items, total amount spent |
+
+**Request/response shape (create example):**
+
+```json
+POST /api/v1/items
+{
+  "name": "Gold Temple Necklace",
+  "type": "GOLD",
+  "carat": 22.00,
+  "weightGrams": 45.200,
+  "amountSpent": 12850.00,
+  "remarks": "Bought for wedding, Chennai 2019"
+}
+→ 201 Created, body = full item JSON (camelCase)
+```
+
+**Errors:** standard `4xx` with body `{ "status", "error", "message", "path", "timestamp" }`.
+`400` for validation failures (field-level messages), `404` for missing ids.
+
+**CORS:** allow the frontend dev origin (`http://localhost:5173`).
+
+## 9. Technology Stack
+
+| Layer | Choice | Rationale |
+|---|---|---|
+| Frontend | **React 18+ (Vite, TypeScript)** | fast dev loop, type safety across the API boundary |
+| Styling | **Tailwind CSS** | rapid, consistent utility styling |
+| Charts | **Recharts** | React-native, declarative, easy responsive behaviour |
+| Backend | **Spring Boot 3.x** (Web, Data JPA, Validation) + **Maven** | user-specified; JPA keeps the API clean |
+| Database | **MariaDB 12** via **Docker Compose** | user-specified; not installed natively, Docker is available |
+| Java target | Java 21 source level | host runs JDK 25; 21 is the safe, widely-supported target |
+| API docs | **springdoc-openapi** (Swagger UI) | manual testing in Phase 2 |
+| Migrations | `ddl-auto: update` + `data.sql` seed for v1 | simplicity; Flyway later if schema churns |
+
+## 10. Delivery Phases
+
+### Phase 1 — Frontend with sample data
+
+- Scaffold `frontend/` (Vite + React + TS + Tailwind)
+- Service interface `src/api/jewelleryService.ts` + **mock implementation** (in-memory,
+  persisted to localStorage so the demo survives reloads)
+- All dashboard UI per §7: stat cards, bar chart, donut chart, filterable table
+- Add/Edit/Delete modal with validation per FR-5
+- Seed the ~15 sample items
+- **Done when:** `npm run dev` → all functional requirements FR-1…FR-5 demonstrable offline;
+  data persists across reload; UI is responsive at 400 px width
+
+### Phase 2 — Backend (APIs + database)
+
+- `docker-compose.yml` bringing up MariaDB 11 on `:3306` with seeded schema + sample rows
+- `backend/` Maven project: entity, repository, service, controller, DTOs, mappers
+- REST API per §8, Bean Validation, `@ControllerAdvice` error handling, CORS, Swagger UI
+- Unit tests for service-layer logic (totals, filtering); API verified end-to-end via Swagger
+- **Done when:** all 6 endpoints work against a running MariaDB; summary totals match seed data;
+  validation and 404 errors return spec-compliant bodies
+
+### Phase 3 — Integrate frontend ↔ backend
+
+- `httpClient` implementation of the same service interface using `fetch`; base URL from
+  `VITE_API_BASE_URL` (`.env`)
+- Real loading / error / empty states; success & error toasts on mutations
+- Switch UI to live API (mock retained behind a flag for offline dev)
+- End-to-end verification: add item in UI → row appears in MariaDB → dashboard totals update;
+  delete → totals shrink; filters hit the right query params
+- Root `README.md`: prerequisites, one-command startup (`docker compose up -d`,
+  `mvn spring-boot:run`, `npm run dev`), API reference link
+- **Done when:** the full app runs locally with all features working against live data
+
+## 11. Non-Functional Requirements
+
+| Area | Requirement |
+|---|---|
+| Performance | Dashboard renders < 2 s locally; list API < 300 ms with < 10k rows |
+| Correctness | Totals always sum the current list state; no drift between cards, charts, and table |
+| Validation | Server-side validation is authoritative; client validation is UX only |
+| Errors | No unhandled promise rejections; every network failure surfaces a user-visible toast |
+| Portability | Whole stack starts from a clean machine with only Docker + JDK + Node installed |
+| Security | Local app; parameterised queries via JPA only, no string SQL, no secrets in repo |
+| Accessibility | Keyboard-navigable table/modal, visible focus rings, form labels on every field |
+
+## 12. Risks & Mitigations
+
+| Risk | Mitigation |
+|---|---|
+| JDK 25 vs Spring Boot compatibility surprises | Pin Java target to 21; verify early in Phase 2 with a smoke build |
+| Docker daemon not running when Phase 2 starts | Check `docker ps` first; README includes `docker compose up -d` as step 1 |
+| Chart library responsive edge cases | Test at 400 px explicitly (Phase 1 exit criterion) |
+| Phase 1 → 3 data-shape mismatch | Interface defined in Phase 1 IS the contract; backend DTOs are written to it, not the reverse |
+
+## 13. Future Enhancements (post-v1)
+
+- Photos per item; tags/occasions; per-gram purchase price vs. current rate valuation
+- CSV/Excel export & import
+- Multi-user with auth (JWT) — the per-user `data` model already supports it
+- Deployment: Spring Boot JAR + static build behind one reverse proxy (e.g. Caddy/Nginx)
+- Flyway-managed migrations once the schema stabilises

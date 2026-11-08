@@ -1,0 +1,16 @@
+services:
+  db:
+    image: docker.io/library/mariadb:12
+    restart: unless-stopped
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_DATABASE: jeweldb
+      MARIADB_USER: jewel
+      MARIADB_PASSWORD: jewel@123
+      MARIADB_ROOT_PASSWORD: jeweldb@123
+      TZ: Asia/Singapore
+volumes:
+  dbdata:
