@@ -4,10 +4,11 @@ export interface JewelleryItem {
   id: number
   name: string
   type: JewelleryType
-  carat: number | null
   weightGrams: number
   amountSpent: number
   remarks: string | null
+  givenBy: string | null
+  belongsTo: string | null
   createdAt: string
   updatedAt: string
 }
@@ -26,7 +27,8 @@ export interface DashboardSummary {
 export interface FilterParams {
   type?: JewelleryType | 'ALL'
   name?: string
-  carat?: string | null
+  givenBy?: string
+  belongsTo?: string
   sortField?: string
   sortDirection?: 'asc' | 'desc'
 }

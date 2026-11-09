@@ -1,15 +1,19 @@
 import { useState, useMemo } from 'react'
 import { JewelleryItem, FilterParams } from '../types'
-import { formatCurrency, formatWeight, formatCarat, formatDate, truncate } from '../utils/formatting'
-import { useJewelleryService } from '../hooks/useJewelleryService'
+import { formatCurrency, formatWeight, formatDate, truncate } from '../utils/formatting'
 
 interface SortConfig {
   field: string
   direction: 'asc' | 'desc'
 }
 
-export function ItemList() {
-  const { items, addOrUpdateItem, deleteItem } = useJewelleryService()
+interface ItemListProps {
+  items: JewelleryItem[]
+  onSave: (itemData: Omit<JewelleryItem, 'id' | 'createdAt' | 'updatedAt'>, id?: number) => Promise<void>
+  onDelete: (id: number) => Promise<void>
+}
+
+export function ItemList({ items, onSave, onDelete }: ItemListProps) {
   const [filter, setFilter] = useState<FilterParams>({})
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'createdAt', direction: 'desc' })
   const [editingItem, setEditingItem] = useState<JewelleryItem | null>(null)
@@ -23,11 +27,11 @@ export function ItemList() {
       if (filter.name && filter.name.trim()) {
         if (!item.name.toLowerCase().includes(filter.name.toLowerCase())) return false
       }
-      if (filter.carat !== undefined && filter.carat !== null && filter.carat !== '') {
-        const carat = parseFloat(filter.carat)
-        if (!isNaN(carat)) {
-          if (item.carat === null || item.carat !== carat) return false
-        }
+      if (filter.givenBy && filter.givenBy.trim()) {
+        if (!item.givenBy || !item.givenBy.toLowerCase().includes(filter.givenBy.toLowerCase())) return false
+      }
+      if (filter.belongsTo && filter.belongsTo.trim()) {
+        if (!item.belongsTo || !item.belongsTo.toLowerCase().includes(filter.belongsTo.toLowerCase())) return false
       }
       return true
     })
@@ -46,10 +50,11 @@ export function ItemList() {
         case 'createdAt':
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           break
-        case 'carat':
-          const aCarat = a.carat ?? 0
-          const bCarat = b.carat ?? 0
-          comparison = aCarat - bCarat
+        case 'givenBy':
+          comparison = (a.givenBy ?? '').localeCompare(b.givenBy ?? '')
+          break
+        case 'belongsTo':
+          comparison = (a.belongsTo ?? '').localeCompare(b.belongsTo ?? '')
           break
         default:
           comparison = 0
@@ -69,15 +74,16 @@ export function ItemList() {
     setSortConfig({ field: 'createdAt', direction: 'desc' })
   }
 
-  // Get unique carat values from filtered items for the dropdown
-  const caratOptions = useMemo(() => {
-    const carats = new Set<string>()
-    items.forEach(item => {
-      if (item.carat !== null) {
-        carats.add(item.carat.toString())
-      }
-    })
-    return Array.from(carats).sort((a, b) => parseFloat(a) - parseFloat(b))
+  const givenByOptions = useMemo(() => {
+    const values = new Set<string>()
+    items.forEach(item => { if (item.givenBy) values.add(item.givenBy) })
+    return Array.from(values).sort((a, b) => a.localeCompare(b))
+  }, [items])
+
+  const belongsToOptions = useMemo(() => {
+    const values = new Set<string>()
+    items.forEach(item => { if (item.belongsTo) values.add(item.belongsTo) })
+    return Array.from(values).sort((a, b) => a.localeCompare(b))
   }, [items])
 
   const handleEdit = (item: JewelleryItem) => {
@@ -87,7 +93,7 @@ export function ItemList() {
   const handleDelete = async () => {
     if (deleteConfirmId !== null) {
       try {
-        await deleteItem(deleteConfirmId)
+        await onDelete(deleteConfirmId)
       } catch (error: any) {
         console.error('Error deleting item:', error)
       } finally {
@@ -101,7 +107,7 @@ export function ItemList() {
     id?: number
   ) => {
     try {
-      await addOrUpdateItem(itemData, id)
+      await onSave(itemData, id)
     } catch (error: any) {
       console.error('Error saving item:', error)
       throw error
@@ -138,22 +144,34 @@ export function ItemList() {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Carat:</span>
+          <span className="text-sm font-medium text-gray-700">Belongs To:</span>
           <select
-            value={filter.carat ?? ''}
-            onChange={(e) => setFilter({ ...filter, carat: e.target.value || null })}
+            value={filter.belongsTo ?? ''}
+            onChange={(e) => setFilter({ ...filter, belongsTo: e.target.value || undefined })}
             className="rounded-lg border-gray-300 py-1.5 pl-3 pr-8 text-sm focus:border-blue-500 focus:ring-blue-500"
           >
             <option value="">Any</option>
-            {caratOptions.map(carat => (
-              <option key={carat} value={carat}>
-                {formatCarat(parseFloat(carat))}
-              </option>
+            {belongsToOptions.map(v => (
+              <option key={v} value={v}>{v}</option>
             ))}
           </select>
         </div>
 
-        {(filter.type || filter.name || filter.carat) && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Given By:</span>
+          <select
+            value={filter.givenBy ?? ''}
+            onChange={(e) => setFilter({ ...filter, givenBy: e.target.value || undefined })}
+            className="rounded-lg border-gray-300 py-1.5 pl-3 pr-8 text-sm focus:border-blue-500 focus:ring-blue-500"
+          >
+            <option value="">Any</option>
+            {givenByOptions.map(v => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </div>
+
+        {(filter.type || filter.name || filter.givenBy || filter.belongsTo) && (
           <button
             onClick={clearFilters}
             className="ml-auto rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200"
@@ -179,9 +197,10 @@ export function ItemList() {
               {[
                 { label: 'Name', field: 'name' },
                 { label: 'Type', field: 'type' },
-                { label: 'Carat', field: 'carat' },
                 { label: 'Weight (g)', field: 'weightGrams' },
                 { label: 'Amount (S$)', field: 'amountSpent' },
+                { label: 'Belongs To', field: 'belongsTo' },
+                { label: 'Given By', field: 'givenBy' },
                 { label: 'Remarks', field: 'remarks' },
                 { label: 'Added', field: 'createdAt' },
               ].map((column) => (
@@ -218,7 +237,7 @@ export function ItemList() {
           <tbody className="divide-y divide-gray-200 bg-white">
             {filteredItems.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
                     <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -248,13 +267,16 @@ export function ItemList() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {formatCarat(item.carat)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {formatWeight(item.weightGrams)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {formatCurrency(item.amountSpent)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {item.belongsTo || <span className="text-gray-300">—</span>}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {item.givenBy || <span className="text-gray-300">—</span>}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {truncate(item.remarks, 30)}
@@ -330,10 +352,11 @@ function EditItemModal({ item, onClose, onSubmit }: EditItemModalProps) {
   const [formData, setFormData] = useState({
     name: item.name,
     type: item.type,
-    carat: item.carat?.toString() ?? '',
     weightGrams: item.weightGrams.toString(),
     amountSpent: item.amountSpent.toString(),
-    remarks: item.remarks ?? ''
+    remarks: item.remarks ?? '',
+    givenBy: item.givenBy ?? '',
+    belongsTo: item.belongsTo ?? ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -357,10 +380,6 @@ function EditItemModal({ item, onClose, onSubmit }: EditItemModalProps) {
       newErrors.amountSpent = 'Amount cannot be negative'
     }
 
-    if (formData.carat && (parseFloat(formData.carat) < 0 || parseFloat(formData.carat) > 99.99)) {
-      newErrors.carat = 'Carat must be between 0 and 99.99'
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -379,10 +398,11 @@ function EditItemModal({ item, onClose, onSubmit }: EditItemModalProps) {
         {
           name: formData.name.trim(),
           type: formData.type,
-          carat: formData.carat ? parseFloat(formData.carat) : null,
           weightGrams: parseFloat(formData.weightGrams),
           amountSpent: parseFloat(formData.amountSpent),
-          remarks: formData.remarks.trim() || null
+          remarks: formData.remarks.trim() || null,
+          givenBy: formData.givenBy.trim() || null,
+          belongsTo: formData.belongsTo.trim() || null
         },
         item.id
       )
@@ -460,23 +480,6 @@ function EditItemModal({ item, onClose, onSubmit }: EditItemModalProps) {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-900">
-              Carat <span className="text-gray-400">(optional)</span>
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.carat}
-              onChange={(e) => setFormData({ ...formData, carat: e.target.value })}
-              className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-              placeholder="e.g., 22"
-              min="0"
-              max="99.99"
-            />
-            {errors.carat && <p className="mt-1 text-xs text-red-600">{errors.carat}</p>}
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-900">
               Weight (g) <span className="text-red-500">*</span>
             </label>
             <input
@@ -510,12 +513,39 @@ function EditItemModal({ item, onClose, onSubmit }: EditItemModalProps) {
             {errors.amountSpent && <p className="mt-1 text-xs text-red-600">{errors.amountSpent}</p>}
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                Belongs To <span className="text-gray-400">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.belongsTo}
+                onChange={(e) => setFormData({ ...formData, belongsTo: e.target.value })}
+                className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                placeholder="e.g., Wife"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                Given By <span className="text-gray-400">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.givenBy}
+                onChange={(e) => setFormData({ ...formData, givenBy: e.target.value })}
+                className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                placeholder="e.g., Mother"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-900">
               Remarks <span className="text-gray-400">(optional)</span>
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={formData.remarks}
               onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
               className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"

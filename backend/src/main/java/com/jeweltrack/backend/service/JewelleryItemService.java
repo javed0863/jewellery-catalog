@@ -7,12 +7,11 @@ import com.jeweltrack.backend.dto.JewelleryItemUpdateRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public interface JewelleryItemService {
 
-    List<JewelleryItemDto> getAllItems(String type, String name, BigDecimal carat, String sort, Integer page, Integer size);
+    List<JewelleryItemDto> getAllItems(String type, String name, String sort, Integer page, Integer size);
 
     JewelleryItemDto getItemById(Long id);
 

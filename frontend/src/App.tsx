@@ -8,7 +8,7 @@ import { useJewelleryService } from './hooks/useJewelleryService'
 import { formatCurrency, formatWeight } from './utils/formatting'
 
 function App() {
-  const { items, dashboardSummary, addOrUpdateItem, isLoading, loadError } = useJewelleryService()
+  const { items, dashboardSummary, addOrUpdateItem, deleteItem, isLoading, loadError } = useJewelleryService()
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [toasts, setToasts] = useState<{ id: number; type: 'success' | 'error' | 'info'; message: string }[]>([])
 
@@ -29,7 +29,7 @@ function App() {
     }
   }
 
-  const handleEditItem = async (itemData: Omit<JewelleryItem, 'id' | 'createdAt' | 'updatedAt'>, id: number) => {
+  const handleEditItem = async (itemData: Omit<JewelleryItem, 'id' | 'createdAt' | 'updatedAt'>, id?: number) => {
     try {
       await addOrUpdateItem(itemData, id)
       addToast('Item updated successfully', 'success')
@@ -158,7 +158,7 @@ function App() {
 
         {/* Item List */}
         <section>
-          <ItemList />
+          <ItemList items={items} onSave={handleEditItem} onDelete={deleteItem} />
         </section>
       </main>
 

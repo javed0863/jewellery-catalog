@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://127.0.0.1:3000"})
@@ -27,11 +26,10 @@ public class JewelleryItemController {
     public List<JewelleryItemDto> getAllItems(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) BigDecimal carat,
             @RequestParam(defaultValue = "id") String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
-        return service.getAllItems(type, name, carat, sort, page, size);
+        return service.getAllItems(type, name, sort, page, size);
     }
 
     @GetMapping("/items/{id}")

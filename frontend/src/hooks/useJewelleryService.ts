@@ -59,32 +59,18 @@ export function useJewelleryService() {
 
   const addOrUpdateItem = async (itemData: Omit<JewelleryItem, 'id' | 'createdAt' | 'updatedAt'>, id?: number) => {
     try {
-      let result: JewelleryItem
+      const result = id
+        ? await jewelleryService.updateItem(id, itemData)
+        : await jewelleryService.createItem(itemData)
 
-      if (id) {
-        result = await jewelleryService.updateItem(id, itemData)
-      } else {
-        result = await jewelleryService.createItem(itemData)
-      }
-
-      setItems(prev => {
-        const existing = prev.find(i => i.id === id)
-        if (existing) {
-          return prev.map(i => (i.id === id ? result : i))
-        }
-        return [...prev, result]
-      })
-      setDashboardSummary(prev => {
-        if (!prev) return null
-        return {
-          ...prev,
-          totalItems: prev.totalItems + (id ? 0 : 1),
-          [itemData.type === 'GOLD' ? 'totalGoldGrams' : itemData.type === 'SILVER' ? 'totalSilverGrams' : 'totalOtherGrams']:
-            prev[itemData.type === 'GOLD' ? 'totalGoldGrams' : itemData.type === 'SILVER' ? 'totalSilverGrams' : 'totalOtherGrams'] + itemData.weightGrams,
-          [itemData.type === 'GOLD' ? 'totalGoldValue' : itemData.type === 'SILVER' ? 'totalSilverValue' : 'totalOtherValue']:
-            prev[itemData.type === 'GOLD' ? 'totalGoldValue' : itemData.type === 'SILVER' ? 'totalSilverValue' : 'totalOtherValue'] + itemData.amountSpent,
-        }
-      })
+      // Re-fetch items and dashboard summary from the backend so the
+      // list and totals always reflect the authoritative server state
+      const [itemsData, summaryData] = await Promise.all([
+        jewelleryService.getItems(),
+        jewelleryService.getDashboardSummary()
+      ])
+      setItems(itemsData)
+      setDashboardSummary(summaryData)
       return result
     } catch (error: any) {
       console.error('[useJewelleryService] Error saving item:', error)

@@ -13,10 +13,11 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
   const [formData, setFormData] = useState({
     name: '',
     type: 'GOLD' as JewelleryType,
-    carat: '',
     weightGrams: '',
     amountSpent: '',
-    remarks: ''
+    remarks: '',
+    givenBy: '',
+    belongsTo: ''
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,10 +27,11 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
       setFormData({
         name: initialData.name,
         type: initialData.type,
-        carat: initialData.carat?.toString() ?? '',
         weightGrams: initialData.weightGrams.toString(),
         amountSpent: initialData.amountSpent.toString(),
-        remarks: initialData.remarks ?? ''
+        remarks: initialData.remarks ?? '',
+        givenBy: initialData.givenBy ?? '',
+        belongsTo: initialData.belongsTo ?? ''
       })
     } else if (isOpen) {
       resetForm()
@@ -40,10 +42,11 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
     setFormData({
       name: '',
       type: 'GOLD',
-      carat: '',
       weightGrams: '',
       amountSpent: '',
-      remarks: ''
+      remarks: '',
+      givenBy: '',
+      belongsTo: ''
     })
     setErrors({})
   }
@@ -67,10 +70,6 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
       newErrors.amountSpent = 'Amount cannot be negative'
     }
 
-    if (formData.carat && (parseFloat(formData.carat) < 0 || parseFloat(formData.carat) > 99.99)) {
-      newErrors.carat = 'Carat must be between 0 and 99.99'
-    }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -88,10 +87,11 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
       await onSubmit({
         name: formData.name.trim(),
         type: formData.type,
-        carat: formData.carat ? parseFloat(formData.carat) : null,
         weightGrams: parseFloat(formData.weightGrams),
         amountSpent: parseFloat(formData.amountSpent),
-        remarks: formData.remarks.trim() || null
+        remarks: formData.remarks.trim() || null,
+        givenBy: formData.givenBy.trim() || null,
+        belongsTo: formData.belongsTo.trim() || null
       })
 
       onClose()
@@ -171,24 +171,7 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
             {errors.type && <p className="mt-1 text-xs text-red-600">{errors.type}</p>}
           </div>
 
-          {/* Carat */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-900">
-              Carat <span className="text-gray-400">(optional)</span>
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.carat}
-              onChange={(e) => setFormData({ ...formData, carat: e.target.value })}
-              className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-              placeholder="e.g., 22"
-              min="0"
-              max="99.99"
-            />
-            {errors.carat && <p className="mt-1 text-xs text-red-600">{errors.carat}</p>}
-          </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Weight */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-900">
@@ -225,6 +208,35 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
             </div>
             {errors.amountSpent && <p className="mt-1 text-xs text-red-600">{errors.amountSpent}</p>}
           </div>
+          </div>
+
+          {/* Belongs To / Given By */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                Belongs To <span className="text-gray-400">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.belongsTo}
+                onChange={(e) => setFormData({ ...formData, belongsTo: e.target.value })}
+                className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                placeholder="e.g., Wife"
+              />
+            </div>
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-gray-900">
+                Given By <span className="text-gray-400">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.givenBy}
+                onChange={(e) => setFormData({ ...formData, givenBy: e.target.value })}
+                className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                placeholder="e.g., Mother"
+              />
+            </div>
+          </div>
 
           {/* Remarks */}
           <div>
@@ -232,7 +244,7 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
               Remarks <span className="text-gray-400">(optional)</span>
             </label>
             <textarea
-              rows={3}
+              rows={2}
               value={formData.remarks}
               onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
               className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"

@@ -20,10 +20,6 @@ public interface JewelleryItemRepository extends JpaRepository<JewelleryItem, Lo
 
     List<JewelleryItem> findByNameContainingIgnoreCase(String name);
 
-    List<JewelleryItem> findByCarat(BigDecimal carat);
-
-    List<JewelleryItem> findByTypeAndCarat(JewelleryType type, BigDecimal carat);
-
     @Query("SELECT SUM(i.weightGrams) FROM JewelleryItem i WHERE i.type = :type")
     Optional<BigDecimal> findTotalWeightByType(@Param("type") JewelleryType type);
 
@@ -38,20 +34,16 @@ public interface JewelleryItemRepository extends JpaRepository<JewelleryItem, Lo
 
     @Query("SELECT j FROM JewelleryItem j " +
            "WHERE (:type IS NULL OR j.type = :type) " +
-           "AND (:name IS NULL OR LOWER(j.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
-           "AND (:carat IS NULL OR j.carat = :carat)")
+           "AND (:name IS NULL OR LOWER(j.name) LIKE LOWER(CONCAT('%', :name, '%')))")
     List<JewelleryItem> filterItems(
             @Param("type") JewelleryType type,
-            @Param("name") String name,
-            @Param("carat") BigDecimal carat);
+            @Param("name") String name);
 
     @Query("SELECT j FROM JewelleryItem j " +
            "WHERE (:type IS NULL OR j.type = :type) " +
-           "AND (:name IS NULL OR LOWER(j.name) LIKE LOWER(CONCAT('%', :name, '%'))) " +
-           "AND (:carat IS NULL OR j.carat = :carat)")
+           "AND (:name IS NULL OR LOWER(j.name) LIKE LOWER(CONCAT('%', :name, '%')))")
     List<JewelleryItem> filterItemsWithSort(
             @Param("type") JewelleryType type,
             @Param("name") String name,
-            @Param("carat") BigDecimal carat,
             Sort sort);
 }

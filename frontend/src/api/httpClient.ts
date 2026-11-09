@@ -61,7 +61,6 @@ export const api = {
   getItems: (params?: {
     type?: string
     name?: string
-    carat?: number
     sort?: string
     page?: number
     size?: number

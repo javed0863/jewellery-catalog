@@ -25,7 +25,7 @@ public class JewelleryItemServiceImpl implements JewelleryItemService {
     }
 
     @Override
-    public List<JewelleryItemDto> getAllItems(String type, String name, BigDecimal carat, String sort, Integer page, Integer size) {
+    public List<JewelleryItemDto> getAllItems(String type, String name, String sort, Integer page, Integer size) {
         JewelleryType jewelleryType = type != null ? JewelleryType.valueOf(type) : null;
 
         // Build sort specification
@@ -37,7 +37,7 @@ public class JewelleryItemServiceImpl implements JewelleryItemService {
             sortObj = Sort.by(ascending ? Sort.Order.asc(sortField) : Sort.Order.desc(sortField));
         }
 
-        List<JewelleryItem> items = repository.filterItemsWithSort(jewelleryType, name, carat, sortObj);
+        List<JewelleryItem> items = repository.filterItemsWithSort(jewelleryType, name, sortObj);
 
         return items.stream()
                 .map(this::toDto)
@@ -56,10 +56,11 @@ public class JewelleryItemServiceImpl implements JewelleryItemService {
         JewelleryItem item = new JewelleryItem();
         item.setName(request.getName());
         item.setType(JewelleryType.valueOf(request.getType()));
-        item.setCarat(request.getCarat());
         item.setWeightGrams(request.getWeightGrams());
         item.setAmountSpent(request.getAmountSpent());
         item.setRemarks(request.getRemarks());
+        item.setGivenBy(request.getGivenBy());
+        item.setBelongsTo(request.getBelongsTo());
 
         JewelleryItem saved = repository.save(item);
         return toDto(saved);
@@ -72,10 +73,11 @@ public class JewelleryItemServiceImpl implements JewelleryItemService {
 
         existing.setName(request.getName());
         existing.setType(JewelleryType.valueOf(request.getType()));
-        existing.setCarat(request.getCarat());
         existing.setWeightGrams(request.getWeightGrams());
         existing.setAmountSpent(request.getAmountSpent());
         existing.setRemarks(request.getRemarks());
+        existing.setGivenBy(request.getGivenBy());
+        existing.setBelongsTo(request.getBelongsTo());
 
         JewelleryItem updated = repository.save(existing);
         return toDto(updated);
@@ -122,10 +124,11 @@ public class JewelleryItemServiceImpl implements JewelleryItemService {
         dto.setId(item.getId());
         dto.setName(item.getName());
         dto.setType(item.getType().name());
-        dto.setCarat(item.getCarat());
         dto.setWeightGrams(item.getWeightGrams());
         dto.setAmountSpent(item.getAmountSpent());
         dto.setRemarks(item.getRemarks());
+        dto.setGivenBy(item.getGivenBy());
+        dto.setBelongsTo(item.getBelongsTo());
         dto.setCreatedAt(item.getCreatedAt());
         dto.setUpdatedAt(item.getUpdatedAt());
         return dto;

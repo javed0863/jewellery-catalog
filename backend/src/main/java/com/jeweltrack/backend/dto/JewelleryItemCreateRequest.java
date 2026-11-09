@@ -16,8 +16,6 @@ public class JewelleryItemCreateRequest {
     @NotBlank
     private String type;
 
-    private BigDecimal carat;
-
     @NotNull
     @Positive
     private BigDecimal weightGrams;
@@ -28,6 +26,12 @@ public class JewelleryItemCreateRequest {
 
     @Size(max = 1000)
     private String remarks;
+
+    @Size(max = 100)
+    private String givenBy;
+
+    @Size(max = 100)
+    private String belongsTo;
 
     public String getName() {
         return name;
@@ -43,14 +47,6 @@ public class JewelleryItemCreateRequest {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public BigDecimal getCarat() {
-        return carat;
-    }
-
-    public void setCarat(BigDecimal carat) {
-        this.carat = carat;
     }
 
     public BigDecimal getWeightGrams() {
@@ -75,5 +71,21 @@ public class JewelleryItemCreateRequest {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getGivenBy() {
+        return givenBy;
+    }
+
+    public void setGivenBy(String givenBy) {
+        this.givenBy = givenBy;
+    }
+
+    public String getBelongsTo() {
+        return belongsTo;
+    }
+
+    public void setBelongsTo(String belongsTo) {
+        this.belongsTo = belongsTo;
     }
 }

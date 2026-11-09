@@ -8,10 +8,11 @@ public class JewelleryItemDto {
     private Long id;
     private String name;
     private String type;
-    private BigDecimal carat;
     private BigDecimal weightGrams;
     private BigDecimal amountSpent;
     private String remarks;
+    private String givenBy;
+    private String belongsTo;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -39,14 +40,6 @@ public class JewelleryItemDto {
         this.type = type;
     }
 
-    public BigDecimal getCarat() {
-        return carat;
-    }
-
-    public void setCarat(BigDecimal carat) {
-        this.carat = carat;
-    }
-
     public BigDecimal getWeightGrams() {
         return weightGrams;
     }
@@ -69,6 +62,22 @@ public class JewelleryItemDto {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getGivenBy() {
+        return givenBy;
+    }
+
+    public void setGivenBy(String givenBy) {
+        this.givenBy = givenBy;
+    }
+
+    public String getBelongsTo() {
+        return belongsTo;
+    }
+
+    public void setBelongsTo(String belongsTo) {
+        this.belongsTo = belongsTo;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -26,8 +26,6 @@ public class JewelleryItem {
     @NotNull
     private JewelleryType type;
 
-    private BigDecimal carat;
-
     @NotNull
     @Positive
     @Column(precision = 10, scale = 3)
@@ -40,6 +38,14 @@ public class JewelleryItem {
 
     @Size(max = 1000)
     private String remarks;
+
+    @Size(max = 100)
+    @Column(name = "given_by")
+    private String givenBy;
+
+    @Size(max = 100)
+    @Column(name = "belongs_to")
+    private String belongsTo;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -71,14 +77,6 @@ public class JewelleryItem {
         this.type = type;
     }
 
-    public BigDecimal getCarat() {
-        return carat;
-    }
-
-    public void setCarat(BigDecimal carat) {
-        this.carat = carat;
-    }
-
     public BigDecimal getWeightGrams() {
         return weightGrams;
     }
@@ -101,6 +99,22 @@ public class JewelleryItem {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getGivenBy() {
+        return givenBy;
+    }
+
+    public void setGivenBy(String givenBy) {
+        this.givenBy = givenBy;
+    }
+
+    public String getBelongsTo() {
+        return belongsTo;
+    }
+
+    public void setBelongsTo(String belongsTo) {
+        this.belongsTo = belongsTo;
     }
 
     public LocalDateTime getCreatedAt() {

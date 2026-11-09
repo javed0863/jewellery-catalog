@@ -14,11 +14,6 @@ export function formatWeight(weight: number): string {
   return formatted.replace(/\.0$/, '') + ' g'
 }
 
-export function formatCarat(carat: number | null): string {
-  if (carat === null) return '-'
-  return carat.toString() + 'K'
-}
-
 export function formatDate(dateString: string): string {
   try {
     const date = new Date(dateString)
