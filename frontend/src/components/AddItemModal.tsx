@@ -9,6 +9,12 @@ interface ModalProps {
   isEditing?: boolean
 }
 
+const TYPE_RADIO_STYLE: Record<JewelleryType, { active: string; dot: string }> = {
+  GOLD: { active: 'border-marigold-500 bg-marigold-50', dot: 'bg-marigold-500' },
+  SILVER: { active: 'border-slate-400 bg-slate-50', dot: 'bg-slate-500' },
+  OTHER: { active: 'border-rose-400 bg-rose-50', dot: 'bg-rose-500' },
+}
+
 export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing = false }: ModalProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -104,15 +110,15 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-gray-900/50 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <h3 className="text-xl font-bold text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-ink-900/50 p-4 backdrop-blur-sm">
+      <div className="animate-rise-in relative w-full max-w-lg rounded-2xl border border-ivory-200 bg-ivory-50 shadow-lift">
+        <div className="flex items-center justify-between border-b border-ivory-200 px-6 py-4">
+          <h3 className="font-display text-xl font-semibold text-ink-900">
             {isEditing ? 'Edit Item' : 'Add New Item'}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-ink-400 transition-colors hover:text-ink-700"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -123,32 +129,32 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
         <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
           {/* Name */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-900">
-              Name <span className="text-red-500">*</span>
+            <label className="field-label">
+              Name <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+              className="field-input"
               placeholder="e.g., Bridal Kundan Set"
             />
-            {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+            {errors.name && <p className="field-error">{errors.name}</p>}
           </div>
 
           {/* Type */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-900">
-              Type <span className="text-red-500">*</span>
+            <label className="field-label">
+              Type <span className="text-rose-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-3">
               {(['GOLD', 'SILVER', 'OTHER'] as const).map((type) => (
                 <label
                   key={type}
-                  className={`relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 py-3 transition-all ${
+                  className={`relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 py-3 transition-all ${
                     formData.type === type
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      ? TYPE_RADIO_STYLE[type].active
+                      : 'border-ivory-200 bg-white hover:border-ivory-300'
                   }`}
                 >
                   <input
@@ -159,80 +165,80 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
                     onChange={() => setFormData({ ...formData, type })}
                     className="sr-only"
                   />
-                  <span className="text-sm font-semibold text-gray-900">{type}</span>
+                  <span className="text-sm font-semibold text-ink-900">{type}</span>
                   {formData.type === type && (
                     <div className="absolute top-2 right-2">
-                      <div className="h-2 w-2 rounded-full bg-blue-500" />
+                      <div className={`h-2 w-2 rounded-full ${TYPE_RADIO_STYLE[type].dot}`} />
                     </div>
                   )}
                 </label>
               ))}
             </div>
-            {errors.type && <p className="mt-1 text-xs text-red-600">{errors.type}</p>}
+            {errors.type && <p className="field-error">{errors.type}</p>}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Weight */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-900">
-              Weight (g) <span className="text-red-500">*</span>
+            <label className="field-label">
+              Weight (g) <span className="text-rose-500">*</span>
             </label>
             <input
               type="number"
               step="0.001"
               value={formData.weightGrams}
               onChange={(e) => setFormData({ ...formData, weightGrams: e.target.value })}
-              className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+              className="field-input"
               placeholder="e.g., 45.5"
               min="0.001"
             />
-            {errors.weightGrams && <p className="mt-1 text-xs text-red-600">{errors.weightGrams}</p>}
+            {errors.weightGrams && <p className="field-error">{errors.weightGrams}</p>}
           </div>
 
           {/* Amount */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-900">
-              Amount (S$) <span className="text-red-500">*</span>
+            <label className="field-label">
+              Amount (S$) <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-gray-500">S$</span>
+              <span className="absolute left-3 top-2.5 text-sm font-medium text-ink-400">S$</span>
               <input
                 type="number"
                 step="0.01"
                 value={formData.amountSpent}
                 onChange={(e) => setFormData({ ...formData, amountSpent: e.target.value })}
-                className="w-full rounded-lg border-gray-300 py-2.5 pl-10 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                className="field-input pl-10"
                 placeholder="0.00"
                 min="0"
               />
             </div>
-            {errors.amountSpent && <p className="mt-1 text-xs text-red-600">{errors.amountSpent}</p>}
+            {errors.amountSpent && <p className="field-error">{errors.amountSpent}</p>}
           </div>
           </div>
 
           {/* Belongs To / Given By */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-900">
-                Belongs To <span className="text-gray-400">(optional)</span>
+              <label className="field-label">
+                Belongs To <span className="font-normal text-ink-300">(optional)</span>
               </label>
               <input
                 type="text"
                 value={formData.belongsTo}
                 onChange={(e) => setFormData({ ...formData, belongsTo: e.target.value })}
-                className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                className="field-input"
                 placeholder="e.g., Wife"
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-gray-900">
-                Given By <span className="text-gray-400">(optional)</span>
+              <label className="field-label">
+                Given By <span className="font-normal text-ink-300">(optional)</span>
               </label>
               <input
                 type="text"
                 value={formData.givenBy}
                 onChange={(e) => setFormData({ ...formData, givenBy: e.target.value })}
-                className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+                className="field-input"
                 placeholder="e.g., Mother"
               />
             </div>
@@ -240,32 +246,32 @@ export function AddItemModal({ isOpen, onClose, onSubmit, initialData, isEditing
 
           {/* Remarks */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-900">
-              Remarks <span className="text-gray-400">(optional)</span>
+            <label className="field-label">
+              Remarks <span className="font-normal text-ink-300">(optional)</span>
             </label>
             <textarea
               rows={2}
               value={formData.remarks}
               onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-              className="w-full rounded-lg border-gray-300 py-2.5 pl-3 pr-3 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
+              className="field-input resize-none"
               placeholder="Additional notes..."
             />
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-ivory-200 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              className="rounded-xl px-4 py-2.5 text-sm font-medium text-ink-700 transition-colors hover:bg-ivory-200"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors ${
-                isSubmitting ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors ${
+                isSubmitting ? 'bg-marigold-500' : 'bg-maroon-700 hover:bg-maroon-800'
               }`}
             >
               {isSubmitting ? (

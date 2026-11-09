@@ -23,17 +23,17 @@ function Toast({ message, type, onClose }: ToastProps) {
   }, [onClose])
 
   const styles = {
-    success: 'bg-green-50 border-green-200 text-green-800',
-    error: 'bg-red-50 border-red-200 text-red-800',
-    info: 'bg-blue-50 border-blue-200 text-blue-800'
+    success: 'border-henna-200 bg-henna-50 text-henna-700',
+    error: 'border-rose-200 bg-rose-50 text-rose-800',
+    info: 'border-marigold-200 bg-marigold-50 text-marigold-800'
   }
 
   return (
-    <div className={`flex items-center gap-3 rounded-lg border px-4 py-3 shadow-sm ${styles[type]} animate-fade-in`}>
+    <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-card ${styles[type]} animate-fade-in`}>
       <p className="text-sm font-medium">{message}</p>
       <button
         onClick={() => onClose(Date.now())}
-        className="ml-auto text-current opacity-60 hover:opacity-100"
+        className="ml-auto text-current opacity-60 transition-opacity hover:opacity-100"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

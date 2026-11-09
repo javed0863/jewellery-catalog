@@ -2,21 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply bg-ivory-100 font-sans text-ink-900 antialiased;
+  }
+
+  ::selection {
+    @apply bg-marigold-200 text-maroon-900;
+  }
 }
 
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #f3f4f6;
-  color: #1f2937;
-  line-height: 1.5;
-}
+@layer components {
+  /* Shared form field styles */
+  .field-input {
+    @apply w-full rounded-lg border border-ivory-300 bg-white px-3 py-2.5 text-sm text-ink-900 shadow-sm transition-colors placeholder:text-ink-300 focus:border-marigold-500 focus:outline-none focus:ring-2 focus:ring-marigold-400/30;
+  }
 
-#root {
-  min-height: 100vh;
+  .field-label {
+    @apply mb-1.5 block text-sm font-medium text-ink-700;
+  }
+
+  .field-error {
+    @apply mt-1 text-xs font-medium text-rose-600;
+  }
+
+  /* Small filter-bar controls */
+  .field-select {
+    @apply rounded-lg border border-ivory-300 bg-white py-1.5 pl-3 pr-8 text-sm text-ink-700 transition-colors focus:border-marigold-500 focus:outline-none focus:ring-2 focus:ring-marigold-400/30;
+  }
+
+  .field-search {
+    @apply w-48 rounded-lg border border-ivory-300 bg-white py-1.5 pl-9 pr-3 text-sm text-ink-900 shadow-sm transition-colors placeholder:text-ink-300 focus:border-marigold-500 focus:outline-none focus:ring-2 focus:ring-marigold-400/30;
+  }
 }
 
 @keyframes fadeIn {
@@ -32,4 +53,19 @@ body {
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-rise-in {
+  animation: riseIn 0.25s ease-out forwards;
 }
